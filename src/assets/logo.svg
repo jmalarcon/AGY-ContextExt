@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#1e293b"/>
+  <!-- 3x3 grid of blocks representing context tokens -->
+  <rect x="14" y="14" width="9" height="9" rx="2" fill="#3b82f6"/>
+  <rect x="27" y="14" width="9" height="9" rx="2" fill="#3b82f6"/>
+  <rect x="40" y="14" width="9" height="9" rx="2" fill="#22c55e"/>
+  <rect x="14" y="27" width="9" height="9" rx="2" fill="#22c55e"/>
+  <rect x="27" y="27" width="9" height="9" rx="2" fill="#f59e0b"/>
+  <rect x="40" y="27" width="9" height="9" rx="2" fill="#f59e0b"/>
+  <rect x="14" y="40" width="9" height="9" rx="2" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="27" y="40" width="9" height="9" rx="2" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="40" y="40" width="9" height="9" rx="2" fill="none" stroke="#64748b" stroke-width="1.5"/>
+</svg>

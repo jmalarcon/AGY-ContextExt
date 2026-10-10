@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Context Usage</title>
+  <script src="/preload.js"></script>
+  <style>
+    :root {
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 4px;
+
+      /* High-contrast vibrant colors */
+      --c-user: #2563eb;
+      --c-agent: #059669;
+      --c-tool: #d97706;
+      --c-system: #7c3aed;
+      --c-free: rgba(148, 163, 184, 0.2);
+      --c-free-border: rgba(148, 163, 184, 0.45);
+
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--background, #f8fafc);
+      color: var(--foreground, #0f172a);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .dashboard {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Header */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+    }
+
+    .dash-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .dash-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--muted-foreground, #64748b);
+      margin-top: 1px;
+    }
+
+    .model-badge {
+      font-weight: 600;
+      color: var(--foreground, #0f172a);
+    }
+
+    .dot-sep {
+      opacity: 0.5;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(5, 150, 105, 0.12);
+      border: 1px solid rgba(5, 150, 105, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .live-status.manual {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #059669;
+      animation: pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+      transition: background 0.2s ease;
+    }
+
+    .live-status.manual .live-dot {
+      background: #ef4444;
+      animation: none;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(5, 150, 105, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+    }
+
+    .live-text {
+      font-size: 11px;
+      font-weight: 700;
+      color: #059669;
+      transition: color 0.2s ease;
+    }
+
+    .live-status.manual .live-text {
+      color: #ef4444;
+    }
+
+    .interval-select {
+      height: 28px;
+      padding: 0 6px;
+      border-radius: var(--radius-md);
+      background: var(--content, var(--card, #ffffff));
+      border: 1px solid var(--border, #cbd5e1);
+      color: var(--foreground, #0f172a);
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .interval-select:hover,
+    .interval-select:focus {
+      border-color: var(--muted-foreground, #94a3b8);
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-md);
+      background: var(--content, var(--card, #ffffff));
+      border: 1px solid var(--border, #cbd5e1);
+      color: var(--muted-foreground, #64748b);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--foreground, #0f172a);
+      border-color: var(--muted-foreground, #94a3b8);
+      transform: rotate(45deg);
+    }
+
+    .icon-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Cards Base */
+    .card {
+      background: var(--content, var(--card, #ffffff));
+      border: 1px solid var(--card-border, var(--border, #e2e8f0));
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--foreground, #0f172a);
+    }
+
+    .card-hint {
+      font-size: 11px;
+      color: var(--muted-foreground, #64748b);
+    }
+
+    /* Hero Card */
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hero-main {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground, #64748b);
+    }
+
+    .stat-big-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .stat-big {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--foreground, #0f172a);
+      line-height: 1;
+    }
+
+    .stat-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-foreground, #64748b);
+    }
+
+    .hero-remaining {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .remaining-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--foreground, #0f172a);
+    }
+
+    /* Stacked Multi-Segment Progress Bar */
+    .stacked-bar-container {
+      width: 100%;
+    }
+
+    .stacked-bar {
+      display: flex;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: var(--c-free);
+      border: 1px solid var(--c-free-border);
+      overflow: hidden;
+    }
+
+    .bar-seg {
+      height: 100%;
+      min-width: 0;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .seg-user { background: var(--c-user); }
+    .seg-agent { background: var(--c-agent); }
+    .seg-tool { background: var(--c-tool); }
+    .seg-system { background: var(--c-system); }
+
+    /* Matrix Heatmap */
+    .token-matrix {
+      display: grid;
+      grid-template-columns: repeat(20, 1fr);
+      gap: 3.5px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.04);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border, #e2e8f0);
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      transition: transform 0.15s ease;
+      cursor: pointer;
+    }
+
+    .cell:hover {
+      transform: scale(1.45);
+      z-index: 10;
+    }
+
+    .cell.user {
+      background: var(--c-user) !important;
+      box-shadow: 0 0 3px rgba(37, 99, 235, 0.5);
+    }
+
+    .cell.agent {
+      background: var(--c-agent) !important;
+      box-shadow: 0 0 3px rgba(5, 150, 105, 0.5);
+    }
+
+    .cell.tool {
+      background: var(--c-tool) !important;
+      box-shadow: 0 0 3px rgba(217, 119, 6, 0.5);
+    }
+
+    .cell.system {
+      background: var(--c-system) !important;
+      box-shadow: 0 0 3px rgba(124, 58, 237, 0.5);
+    }
+
+    .cell.free {
+      background: var(--c-free) !important;
+      border: 1px solid var(--c-free-border);
+    }
+
+    /* Breakdown Grid Cards */
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--content, var(--card, #ffffff));
+      border: 1px solid var(--card-border, var(--border, #e2e8f0));
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .stat-card-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .category-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .bg-user { background: var(--c-user); }
+    .bg-agent { background: var(--c-agent); }
+    .bg-tool { background: var(--c-tool); }
+    .bg-system { background: var(--c-system); }
+
+    .stat-card-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted-foreground, #64748b);
+      flex-grow: 1;
+    }
+
+    .stat-card-pct {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--foreground, #0f172a);
+    }
+
+    .stat-card-tokens {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--foreground, #0f172a);
+      padding-left: 17px;
+    }
+
+    /* Subscription & Quota Limits Section */
+    .sub-card {
+      background: var(--content, var(--card, #ffffff));
+      border: 1px solid var(--card-border, var(--border, #e2e8f0));
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sub-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sub-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sub-tier-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--c-user);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .sub-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sub-tabs {
+      display: flex;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.04);
+      padding: 2px;
+      border-radius: 6px;
+    }
+
+    .sub-tab-btn {
+      border: none;
+      background: transparent;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      color: var(--muted-foreground, #64748b);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sub-tab-btn.active {
+      background: var(--card, #ffffff);
+      color: var(--foreground, #0f172a);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .sub-refresh-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border, #e2e8f0);
+      background: transparent;
+      color: var(--muted-foreground, #64748b);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sub-refresh-btn:hover {
+      color: var(--foreground, #0f172a);
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .sub-refresh-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .sub-item {
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sub-item-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .sub-item-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted-foreground, #64748b);
+    }
+
+    .sub-item-pct {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--foreground, #0f172a);
+    }
+
+    .sub-bar-bg {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+    }
+
+    .sub-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease, background 0.3s ease;
+    }
+
+    .sub-item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--muted-foreground, #64748b);
+    }
+
+    .sub-item-reset {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sub-loading {
+      font-size: 11.5px;
+      color: var(--muted-foreground, #64748b);
+      text-align: center;
+      padding: 10px 0;
+      font-style: italic;
+    }
+
+    /* Footer */
+    .dash-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted-foreground, #64748b);
+      padding-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main class="dashboard">
+    <!-- Top Bar -->
+    <header class="dash-header">
+      <div class="header-left">
+        <div class="app-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="dash-title">Context Window</h1>
+          <div class="dash-subtitle">
+            <span id="model-badge" class="model-badge">Gemini 3.8 Flash (Medium)</span>
+            <span class="dot-sep">•</span>
+            <span id="header-status">Live sync</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div id="live-indicator" class="live-status" title="Automatically refreshes every 2 seconds">
+          <span class="live-dot"></span>
+          <span class="live-text">Live</span>
+        </div>
+        <select id="interval-select" class="interval-select" title="Refresh interval in seconds (0 = manual)"></select>
+        <button id="refresh-btn" type="button" class="icon-btn" title="Refresh now">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-1.19" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Overview Hero Card -->
+    <section class="card hero-card">
+      <div class="hero-main">
+        <div class="hero-stat">
+          <span class="stat-label">Total Used</span>
+          <div class="stat-big-row">
+            <span id="used-pct-big" class="stat-big">0.0%</span>
+            <span id="used-tokens-sub" class="stat-sub">0 / 1.0M tokens</span>
+          </div>
+        </div>
+        <div class="hero-remaining">
+          <span class="stat-label">Headroom Remaining</span>
+          <span id="free-tokens-val" class="remaining-value">1.0M tokens (100%)</span>
+        </div>
+      </div>
+
+      <!-- Segmented Gradient Progress Bar -->
+      <div class="stacked-bar-container">
+        <div class="stacked-bar">
+          <div id="bar-user" class="bar-seg seg-user" style="width: 0%;" title="User messages"></div>
+          <div id="bar-agent" class="bar-seg seg-agent" style="width: 0%;" title="Agent responses"></div>
+          <div id="bar-tool" class="bar-seg seg-tool" style="width: 0%;" title="Tool calls"></div>
+          <div id="bar-system" class="bar-seg seg-system" style="width: 0%;" title="System & Cache"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Memory Matrix (Block Grid) -->
+    <section class="card matrix-card">
+      <div class="card-header">
+        <div class="card-title">Token Matrix (200 Blocks)</div>
+        <div id="matrix-info" class="card-hint">Each block ≈ 0.5% (5k tokens)</div>
+      </div>
+
+      <div id="token-matrix" class="token-matrix" aria-label="Visual token blocks">
+        <!-- 200 blocks rendered here -->
+      </div>
+    </section>
+
+    <!-- Detailed Breakdown Cards -->
+    <section class="breakdown-grid">
+      <!-- User messages -->
+      <div class="stat-card stat-user">
+        <div class="stat-card-header">
+          <span class="category-indicator bg-user"></span>
+          <span class="stat-card-title">User Messages</span>
+          <span id="pct-user" class="stat-card-pct">0.0%</span>
+        </div>
+        <div id="tok-user" class="stat-card-tokens">0 tokens</div>
+      </div>
+
+      <!-- Agent responses -->
+      <div class="stat-card stat-agent">
+        <div class="stat-card-header">
+          <span class="category-indicator bg-agent"></span>
+          <span class="stat-card-title">Agent Responses</span>
+          <span id="pct-agent" class="stat-card-pct">0.0%</span>
+        </div>
+        <div id="tok-agent" class="stat-card-tokens">0 tokens</div>
+      </div>
+
+      <!-- Tool calls -->
+      <div class="stat-card stat-tool">
+        <div class="stat-card-header">
+          <span class="category-indicator bg-tool"></span>
+          <span class="stat-card-title">Tool Calls</span>
+          <span id="pct-tool" class="stat-card-pct">0.0%</span>
+        </div>
+        <div id="tok-tool" class="stat-card-tokens">0 tokens</div>
+      </div>
+
+      <!-- System & Cache -->
+      <div class="stat-card stat-system">
+        <div class="stat-card-header">
+          <span class="category-indicator bg-system"></span>
+          <span class="stat-card-title">System &amp; Cache</span>
+          <span id="pct-system" class="stat-card-pct">0.0%</span>
+        </div>
+        <div id="tok-system" class="stat-card-tokens">0 tokens</div>
+      </div>
+    </section>
+
+    <!-- Subscription & Rate Limits -->
+    <section id="subscription-section" class="card sub-card">
+      <div class="sub-card-header">
+        <div class="sub-title-row">
+          <div class="card-title">Subscription Limits</div>
+          <span id="sub-active-tier" class="sub-tier-badge">Plan Quota</span>
+        </div>
+        <div class="sub-header-actions">
+          <div id="sub-group-tabs" class="sub-tabs" style="display: none;"></div>
+          <button id="sub-refresh-btn" type="button" class="sub-refresh-btn" title="Refresh subscription limits">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-1.19" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="sub-loading" class="sub-loading">Checking subscription limits...</div>
+
+      <div id="sub-grid" class="sub-grid" style="display: none;">
+        <!-- 5-Hour Window -->
+        <div class="sub-item">
+          <div class="sub-item-header">
+            <span class="sub-item-title">5-Hour Window</span>
+            <span id="sub-5h-pct" class="sub-item-pct">--% remaining</span>
+          </div>
+          <div class="sub-bar-bg">
+            <div id="sub-5h-bar" class="sub-bar" style="width: 100%;"></div>
+          </div>
+          <div class="sub-item-footer">
+            <span id="sub-5h-reset" class="sub-item-reset">Refreshes in --</span>
+          </div>
+        </div>
+
+        <!-- Weekly Quota -->
+        <div class="sub-item">
+          <div class="sub-item-header">
+            <span class="sub-item-title">Weekly Quota</span>
+            <span id="sub-weekly-pct" class="sub-item-pct">--% remaining</span>
+          </div>
+          <div class="sub-bar-bg">
+            <div id="sub-weekly-bar" class="sub-bar" style="width: 100%;"></div>
+          </div>
+          <div class="sub-item-footer">
+            <span id="sub-weekly-reset" class="sub-item-reset">Refreshes in --</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Timestamp -->
+    <footer class="dash-footer">
+      <span id="last-updated">Auto-synced at --:--:--</span>
+    </footer>
+  </main>
+
+  <script>
+    const sidecar = window.sidecar;
+    const $ = (id) => document.getElementById(id);
+    const MATRIX_TOTAL_BLOCKS = 200;
+
+    function formatTokens(num) {
+      if (!num || num === 0) return '0';
+      if (num >= 1_000_000) {
+        const m = (num / 1_000_000).toFixed(1);
+        return `${m.endsWith('.0') ? m.slice(0, -2) : m}M`;
+      }
+      if (num >= 1_000) {
+        const k = (num / 1_000).toFixed(1);
+        return `${k.endsWith('.0') ? k.slice(0, -2) : k}k`;
+      }
+      return String(num);
+    }
+
+    function renderMatrix(metrics) {
+      const cap = metrics.capacity || 1_048_576;
+      const userTok = metrics.categories?.user?.tokens || 0;
+      const agentTok = metrics.categories?.agent?.tokens || 0;
+      const toolTok = metrics.categories?.tool?.tokens || 0;
+      const sysTok = metrics.categories?.system?.tokens || 0;
+
+      let uBlocks = Math.floor((userTok / cap) * MATRIX_TOTAL_BLOCKS);
+      let aBlocks = Math.floor((agentTok / cap) * MATRIX_TOTAL_BLOCKS);
+      let tBlocks = Math.floor((toolTok / cap) * MATRIX_TOTAL_BLOCKS);
+      let sBlocks = Math.floor((sysTok / cap) * MATRIX_TOTAL_BLOCKS);
+
+      if (userTok > 0 && uBlocks === 0) uBlocks = 1;
+      if (agentTok > 0 && aBlocks === 0) aBlocks = 1;
+      if (toolTok > 0 && tBlocks === 0) tBlocks = 1;
+      if (sysTok > 0 && sBlocks === 0) sBlocks = 1;
+
+      const totalUsed = uBlocks + aBlocks + tBlocks + sBlocks;
+      if (totalUsed > MATRIX_TOTAL_BLOCKS) {
+        const factor = MATRIX_TOTAL_BLOCKS / totalUsed;
+        uBlocks = Math.round(uBlocks * factor);
+        aBlocks = Math.round(aBlocks * factor);
+        tBlocks = Math.round(tBlocks * factor);
+        sBlocks = Math.max(0, MATRIX_TOTAL_BLOCKS - (uBlocks + aBlocks + tBlocks));
+      }
+
+      const cells = [];
+      for (let i = 0; i < uBlocks; i++) cells.push({ cls: 'user', title: `User messages: ${formatTokens(userTok)} tokens` });
+      for (let i = 0; i < aBlocks; i++) cells.push({ cls: 'agent', title: `Agent responses: ${formatTokens(agentTok)} tokens` });
+      for (let i = 0; i < tBlocks; i++) cells.push({ cls: 'tool', title: `Tool calls: ${formatTokens(toolTok)} tokens` });
+      for (let i = 0; i < sBlocks; i++) cells.push({ cls: 'system', title: `System & Cache: ${formatTokens(sysTok)} tokens` });
+
+      while (cells.length < MATRIX_TOTAL_BLOCKS) {
+        cells.push({ cls: 'free', title: `Free space: ${formatTokens(metrics.categories?.free?.tokens || 0)} tokens` });
+      }
+
+      let html = '';
+      for (const c of cells) {
+        html += `<div class="cell ${c.cls}" title="${c.title}"></div>`;
+      }
+      $('token-matrix').innerHTML = html;
+    }
+
+    function updateUi(metrics) {
+      if (!metrics) return;
+
+      const rawModel = metrics.modelName || 'Gemini 3.8 Flash (Medium)';
+      const cleanModel = (/^[a-zA-Z0-9\.\s\(\)-]+$/.test(rawModel)) ? rawModel : 'Gemini 3.8 Flash (Medium)';
+      $('model-badge').textContent = cleanModel;
+      $('header-status').textContent = metrics.awaitingGeneration
+        ? 'Awaiting turn'
+        : `${metrics.usedPercentage.toFixed(1)}% consumed`;
+
+      $('used-pct-big').textContent = `${metrics.usedPercentage.toFixed(1)}%`;
+      $('used-tokens-sub').textContent = `${metrics.totalUsedFormatted} / ${metrics.capacityFormatted} tokens`;
+
+      const free = metrics.categories?.free || { tokens: metrics.capacity, percentage: 100 };
+      const freeTokensText = free.tokens >= 1_000_000
+        ? `${(free.tokens / 1_000_000).toFixed(1)}M`
+        : formatTokens(free.tokens);
+      $('free-tokens-val').textContent = `${freeTokensText} tokens (${free.percentage.toFixed(1)}%)`;
+
+      const user = metrics.categories?.user || { percentage: 0, tokens: 0 };
+      const agent = metrics.categories?.agent || { percentage: 0, tokens: 0 };
+      const tool = metrics.categories?.tool || { percentage: 0, tokens: 0 };
+      const system = metrics.categories?.system || { percentage: 0, tokens: 0 };
+
+      // Multi-segment stacked bar
+      $('bar-user').style.width = `${user.percentage}%`;
+      $('bar-agent').style.width = `${agent.percentage}%`;
+      $('bar-tool').style.width = `${tool.percentage}%`;
+      $('bar-system').style.width = `${system.percentage}%`;
+
+      // Matrix
+      renderMatrix(metrics);
+
+      // Category cards
+      $('tok-user').textContent = `${formatTokens(user.tokens)} tokens`;
+      $('pct-user').textContent = `${user.percentage.toFixed(1)}%`;
+
+      $('tok-agent').textContent = `${formatTokens(agent.tokens)} tokens`;
+      $('pct-agent').textContent = `${agent.percentage.toFixed(1)}%`;
+
+      $('tok-tool').textContent = `${formatTokens(tool.tokens)} tokens`;
+      $('pct-tool').textContent = `${tool.percentage.toFixed(1)}%`;
+
+      $('tok-system').textContent = `${formatTokens(system.tokens)} tokens`;
+      $('pct-system').textContent = `${system.percentage.toFixed(1)}%`;
+
+      // Subscription & Rate Limits
+      if (metrics.subscription) {
+        renderSubscription(metrics.subscription);
+      }
+
+      const now = new Date();
+      $('last-updated').textContent = `Auto-synced at ${now.toLocaleTimeString()}`;
+    }
+
+    let currentSubscriptionData = null;
+    let activeGroupIndex = 0;
+
+    function getQuotaColor(pct) {
+      if (pct >= 50) return '#10b981';
+      if (pct >= 20) return '#f59e0b';
+      return '#f43f5e';
+    }
+
+    function formatRemainingTime(isoString, fallbackDesc) {
+      if (!isoString) return fallbackDesc || '';
+      const target = new Date(isoString).getTime();
+      const diff = target - Date.now();
+      if (isNaN(diff) || diff <= 0) return 'Resetting now';
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      if (days > 0) return `Refreshes in ${days}d ${hours}h`;
+      if (hours > 0) return `Refreshes in ${hours}h ${minutes}m`;
+      return `Refreshes in ${Math.max(1, minutes)}m`;
+    }
+
+    function renderSubscription(sub) {
+      if (sub?.error) {
+        $('sub-loading').textContent = sub.error;
+        $('sub-loading').style.display = 'block';
+        $('sub-grid').style.display = 'none';
+        $('sub-group-tabs').style.display = 'none';
+        return;
+      }
+
+      if (!sub || !sub.groups || sub.groups.length === 0) {
+        $('sub-loading').textContent = 'Checking subscription limits...';
+        $('sub-loading').style.display = 'block';
+        $('sub-grid').style.display = 'none';
+        $('sub-group-tabs').style.display = 'none';
+        return;
+      }
+
+      currentSubscriptionData = sub;
+      $('sub-loading').style.display = 'none';
+      $('sub-grid').style.display = 'grid';
+
+      const groups = sub.groups;
+      const tabsContainer = $('sub-group-tabs');
+      if (groups.length > 1) {
+        tabsContainer.style.display = 'flex';
+        tabsContainer.innerHTML = groups.map((g, idx) => {
+          const label = g.name.replace(' Models', '').replace(' and ', ' & ');
+          return `<button type="button" class="sub-tab-btn ${idx === activeGroupIndex ? 'active' : ''}" data-idx="${idx}">${label}</button>`;
+        }).join('');
+
+        tabsContainer.querySelectorAll('.sub-tab-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            activeGroupIndex = Number(e.currentTarget.getAttribute('data-idx'));
+            renderSubscription(currentSubscriptionData);
+          });
+        });
+      } else {
+        tabsContainer.style.display = 'none';
+      }
+
+      const group = groups[activeGroupIndex] || groups[0];
+      const buckets = group.buckets || [];
+
+      const b5h = buckets.find(b => b.window === '5h' || (b.id && b.id.includes('5h'))) || buckets[1];
+      const bWeekly = buckets.find(b => b.window === 'weekly' || (b.id && b.id.includes('weekly'))) || buckets[0];
+
+      if (b5h) {
+        const pct = b5h.remainingPercentage ?? 100;
+        $('sub-5h-pct').textContent = `${pct.toFixed(1)}% remaining`;
+        $('sub-5h-pct').style.color = getQuotaColor(pct);
+        $('sub-5h-bar').style.width = `${pct}%`;
+        $('sub-5h-bar').style.background = getQuotaColor(pct);
+        $('sub-5h-reset').textContent = formatRemainingTime(b5h.resetTime, b5h.description);
+      }
+
+      if (bWeekly) {
+        const pct = bWeekly.remainingPercentage ?? 100;
+        $('sub-weekly-pct').textContent = `${pct.toFixed(1)}% remaining`;
+        $('sub-weekly-pct').style.color = getQuotaColor(pct);
+        $('sub-weekly-bar').style.width = `${pct}%`;
+        $('sub-weekly-bar').style.background = getQuotaColor(pct);
+        $('sub-weekly-reset').textContent = formatRemainingTime(bWeekly.resetTime, bWeekly.description);
+      }
+    }
+
+    async function refreshSubscriptionNow() {
+      const btn = $('sub-refresh-btn');
+      btn.classList.add('spinning');
+      try {
+        const res = await sidecar.fetch('/api/subscription/refresh');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.subscription) {
+            renderSubscription(data.subscription);
+          }
+        }
+      } catch (e) {
+        console.warn('Subscription refresh error:', e);
+      } finally {
+        setTimeout(() => btn.classList.remove('spinning'), 1000);
+      }
+    }
+
+    async function fetchMetrics() {
+      const convId = sidecar?.conversationId;
+      try {
+        const url = convId ? `/api/context?conversationId=${encodeURIComponent(convId)}` : '/api/context';
+        const res = await sidecar.fetch(url);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const metrics = await res.json();
+        updateUi(metrics);
+      } catch (err) {
+        console.warn('Context poll error:', err);
+      }
+    }
+
+    let pollIntervalTimer = null;
+    let currentIntervalSec = 2;
+
+    function setRefreshInterval(seconds) {
+      currentIntervalSec = parseInt(seconds, 10);
+      if (isNaN(currentIntervalSec) || currentIntervalSec < 0) currentIntervalSec = 0;
+      if (currentIntervalSec > 60) currentIntervalSec = 60;
+
+      try {
+        localStorage.setItem('agy_refresh_interval_sec', String(currentIntervalSec));
+      } catch (e) {}
+
+      if (pollIntervalTimer) {
+        clearInterval(pollIntervalTimer);
+        pollIntervalTimer = null;
+      }
+
+      const liveBadge = $('live-indicator');
+      const liveText = liveBadge?.querySelector('.live-text');
+      const headerStatus = $('header-status');
+
+      if (currentIntervalSec === 0) {
+        liveBadge.classList.add('manual');
+        liveBadge.title = 'Manual refresh only (click the refresh button)';
+        if (liveText) liveText.textContent = 'Manual';
+        if (headerStatus) headerStatus.textContent = 'Manual';
+      } else {
+        liveBadge.classList.remove('manual');
+        liveBadge.title = `Automatically refreshes every ${currentIntervalSec} second${currentIntervalSec === 1 ? '' : 's'}`;
+        if (liveText) liveText.textContent = 'Live';
+        if (headerStatus) headerStatus.textContent = 'Live sync';
+
+        pollIntervalTimer = setInterval(fetchMetrics, currentIntervalSec * 1000);
+      }
+    }
+
+    function initIntervalSelector() {
+      const select = $('interval-select');
+      if (!select) return;
+      select.innerHTML = '';
+
+      const optManual = document.createElement('option');
+      optManual.value = '0';
+      optManual.textContent = '0 (Manual)';
+      select.appendChild(optManual);
+
+      for (let i = 1; i <= 60; i++) {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent = `${i}s`;
+        select.appendChild(opt);
+      }
+
+      let initial = 2;
+      try {
+        const saved = localStorage.getItem('agy_refresh_interval_sec');
+        if (saved !== null) {
+          const parsed = parseInt(saved, 10);
+          if (!isNaN(parsed) && parsed >= 0 && parsed <= 60) {
+            initial = parsed;
+          }
+        }
+      } catch (e) {}
+
+      select.value = String(initial);
+      setRefreshInterval(initial);
+
+      select.addEventListener('change', () => {
+        setRefreshInterval(select.value);
+      });
+    }
+
+    async function handleRefreshClick() {
+      const btn = $('refresh-btn');
+      btn.classList.add('spinning');
+      try {
+        await fetchMetrics();
+      } finally {
+        setTimeout(() => btn.classList.remove('spinning'), 600);
+      }
+    }
+
+    function init() {
+      $('refresh-btn').addEventListener('click', handleRefreshClick);
+      $('sub-refresh-btn').addEventListener('click', refreshSubscriptionNow);
+      initIntervalSelector();
+      fetchMetrics();
+      window.addEventListener('focus', fetchMetrics);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "command": "node",
+  "args": ["main.mjs"],
+  "restart_policy": "always",
+  "display_name": "Context Usage",
+  "description": "Displays live context window token consumption and visual block breakdown matching the CLI /context view.",
+  "has_web_ui": true,
+  "ui_config": {
+    "display_name": "Context Usage",
+    "views": [
+      {
+        "path": "/",
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "title": "Context Usage"
+      }
+    ]
+  }
+}
