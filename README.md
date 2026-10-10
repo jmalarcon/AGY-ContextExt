@@ -1,6 +1,6 @@
-# AGY-ContextExt: Context Usage Extension for Antigravity 2
+# Context Usage Extension for Antigravity 2
 
-**by [José M. Alarcón](https://github.com/jmalarcon)**
+**by [José M. Alarcón](https://github.com/jmalarcon)** - Source code at [GitHub](https://github.com/jmalarcon/AGY-ContextExt)
 
 ## 1. Description
 
