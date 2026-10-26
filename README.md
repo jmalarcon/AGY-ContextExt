@@ -148,7 +148,7 @@ The red block at **150,000 tokens** provides a **practical review checkpoint**, 
 - **Not an absolute cliff**: Exceeding 150k tokens does not automatically break the model. A clean 200k context containing coherent architecture specs and necessary files often performs better than a noisy 90k context filled with compiler stack traces and conflicting directions.
 - **Do not compact too early**: Research by [LangWatch (2026)](https://langwatch.ai/research/finding-the-optimal-context-window) and [Microsoft Research (CompactionBench, 2026)](https://www.microsoft.com/en-us/research/publication/benchmarking-long-horizon-agent-context-compaction-with-compactionbench/) demonstrates that aggressive resetting or compacting (`/compact`) can harm productivity. Critical decisions and project nuances are easily lost during summary compression, with developer corrections jumping up to 40% immediately following compaction.
 
->[!IMPORTANT
+>[!IMPORTANT]
 >**Behavioral Signal**: Treat the red square as an observation cue. Continue working normally, but watch for symptoms of degradation (e.g., repeating discarded bug fixes, forgetting explicit architectural constraints, or editing unintended files). When symptoms appear, start a fresh session with a clear, concise handoff spec.
 
 ## 8. Troubleshooting
