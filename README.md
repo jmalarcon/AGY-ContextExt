@@ -18,6 +18,7 @@ The extension shows:
 - The remaining free headroom tokens.
 - A visual progress bar with color segments for each data category.
 - A visual matrix with 200 colored blocks (each block represents 0.5% of the context window).
+- A red square marker in the matrix that pinpoints the start of the **"dumb zone"** (~150k tokens), where model reasoning and code quality degrade sharply for programming tasks. Hover over it to view status details.
 - A breakdown of tokens by category:
   - User messages
   - Agent responses
@@ -124,9 +125,33 @@ The extension uses the following color codes:
 | **Green** (`#059669`) | Agent Responses | Tokens from agent thoughts and messages |
 | **Amber** (`#d97706`) | Tool Calls | Tokens from tool execution calls and tool results |
 | **Purple** (`#7c3aed`) | System & Cache | Tokens from system prompts, rules, and cache |
+| **Red** (`#ef4444`) | Dumb Zone Limit | Practical review checkpoint for context degradation (~150k tokens) |
 | **Light Slate** | Free Space | Available unused token capacity |
 
-## 7. Troubleshooting
+## 7. Understanding the "Dumb Zone"
+
+Modern Large Language Models (LLMs) support context windows of 1 to 2 million tokens. However, empirical studies show that code quality and complex reasoning degrade long before hitting physical capacity. In software development, this attention degradation is commonly called **context rot** or the **"dumb zone"**.
+
+### Why Context Rot Occurs
+
+The degradation does not come from raw token capacity limits, but from attention dynamics and cognitive noise:
+
+- **Information Interference**: Previous failed attempts, discarded solutions, raw terminal logs, and conversational history compete directly with your current instructions.
+- **Lost in the Middle & Imperfect Retrieval**: Transformer attention concentrates at the start (system prompt) and end of the prompt. Information stored in the middle of long sessions is frequently overlooked or forgotten.
+- **Cross-File Relational Complexity**: While models can locate isolated facts in large contexts, their ability to reason across interconnected files and multi-step architectures drops significantly ([ACL Anthology, 2025](https://aclanthology.org/)).
+- **Empirical Degradation**: Benchmarks such as [Context Rot Quantified (Boolean, 2026)](https://www.boolean.ai/blog/context-rot-quantified), [LOCA-bench](https://loca-bench.github.io/), and Google DeepMind's [Gemini 4 Argon GraphWalks](https://deepmind.google/models/model-cards/gemini-4-argon/) confirm performance drops between 15% and 27% across frontier models when context exceeds 128k–256k tokens.
+
+### Why 150k Tokens Is Marked (and How to Use It)
+
+The red block at **150,000 tokens** provides a **practical review checkpoint**, not an absolute limit:
+
+- **Not an absolute cliff**: Exceeding 150k tokens does not automatically break the model. A clean 200k context containing coherent architecture specs and necessary files often performs better than a noisy 90k context filled with compiler stack traces and conflicting directions.
+- **Do not compact too early**: Research by [LangWatch (2026)](https://langwatch.ai/research/finding-the-optimal-context-window) and [Microsoft Research (CompactionBench, 2026)](https://www.microsoft.com/en-us/research/publication/benchmarking-long-horizon-agent-context-compaction-with-compactionbench/) demonstrates that aggressive resetting or compacting (`/compact`) can harm productivity. Critical decisions and project nuances are easily lost during summary compression, with developer corrections jumping up to 40% immediately following compaction.
+
+>[!IMPORTANT
+>**Behavioral Signal**: Treat the red square as an observation cue. Continue working normally, but watch for symptoms of degradation (e.g., repeating discarded bug fixes, forgetting explicit architectural constraints, or editing unintended files). When symptoms appear, start a fresh session with a clear, concise handoff spec.
+
+## 8. Troubleshooting
 
 ### Problem: The panel is blank or shows an error
 

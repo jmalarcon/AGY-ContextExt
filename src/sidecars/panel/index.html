@@ -301,8 +301,29 @@
     }
 
     .card-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 11px;
       color: var(--muted-foreground, #64748b);
+    }
+
+    .dumb-zone-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #ef4444;
+      font-weight: 600;
+      cursor: help;
+    }
+
+    .dumb-zone-dot {
+      width: 7px;
+      height: 7px;
+      background: #ef4444;
+      border: 1px solid #b91c1c;
+      border-radius: 1.5px;
+      display: inline-block;
     }
 
     /* Hero Card */
@@ -435,6 +456,12 @@
     .cell.free {
       background: var(--c-free) !important;
       border: 1px solid var(--c-free-border);
+    }
+
+    .cell.dumb-zone {
+      background: #ef4444 !important;
+      border: 1px solid #b91c1c !important;
+      box-shadow: 0 0 5px rgba(239, 68, 68, 0.7);
     }
 
     /* Breakdown Grid Cards */
@@ -757,7 +784,12 @@
     <section class="card matrix-card">
       <div class="card-header">
         <div class="card-title">Token Matrix (200 Blocks)</div>
-        <div id="matrix-info" class="card-hint">Each block ≈ 0.5% (5k tokens)</div>
+        <div id="matrix-info" class="card-hint">
+          <span>Each block ≈ 0.5% (5k tokens)</span>
+          <span class="dumb-zone-legend" title="Dumb Zone threshold (~150k tokens): Beyond this point, code quality and model reasoning degrade sharply for programming tasks.">
+            <span class="dumb-zone-dot"></span>150k Dumb Zone
+          </span>
+        </div>
       </div>
 
       <div id="token-matrix" class="token-matrix" aria-label="Visual token blocks">
@@ -916,6 +948,28 @@
 
       while (cells.length < MATRIX_TOTAL_BLOCKS) {
         cells.push({ cls: 'free', title: `Free space: ${formatTokens(metrics.categories?.free?.tokens || 0)} tokens` });
+      }
+
+      // Update matrix header hint dynamically with capacity-aware block size
+      const approxTokensPerBlock = cap > 1_500_000 ? '10k' : '5k';
+      const matrixInfoElem = $('matrix-info');
+      if (matrixInfoElem) {
+        matrixInfoElem.innerHTML = `<span>Each block ≈ 0.5% (${approxTokensPerBlock} tokens)</span>` +
+          `<span class="dumb-zone-legend" title="Dumb Zone threshold (~150k tokens): Beyond this point, code quality and model reasoning degrade sharply for programming tasks."><span class="dumb-zone-dot"></span>150k Dumb Zone</span>`;
+      }
+
+      // Mark the start of the "Dumb Zone" threshold (~150k tokens)
+      const DUMB_ZONE_TOKENS = 150_000;
+      const dumbZoneIndex = Math.min(MATRIX_TOTAL_BLOCKS - 1, Math.floor((DUMB_ZONE_TOKENS / cap) * MATRIX_TOTAL_BLOCKS));
+
+      if (dumbZoneIndex >= 0 && dumbZoneIndex < MATRIX_TOTAL_BLOCKS) {
+        const totalUsedTok = metrics.totalUsed || 0;
+        const isExceeded = totalUsedTok >= DUMB_ZONE_TOKENS;
+        const statusNote = isExceeded ? ' [Exceeded]' : ' [Safe]';
+        cells[dumbZoneIndex] = {
+          cls: 'dumb-zone',
+          title: `Dumb Zone threshold (~150k tokens)${statusNote}: Model reasoning and code quality degrade sharply beyond this point for programming.`,
+        };
       }
 
       let html = '';

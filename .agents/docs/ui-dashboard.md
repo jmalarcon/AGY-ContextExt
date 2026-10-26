@@ -20,8 +20,9 @@ The dashboard is structured into four primary sections:
 
 3. **Memory Heatmap Matrix**:
    - 200-cell responsive CSS Grid (`repeat(20, 1fr)`).
-   - Each cell represents **0.5%** of the context window (~5,000 tokens on 1M models).
+   - Each cell represents **0.5%** of the context window (~5,000 tokens on 1M models, ~10,000 tokens on 2M models).
    - Hover magnification (`transform: scale(1.45)`) with native tooltips indicating exact token counts.
+   - **"Dumb Zone" Threshold Marker**: Distinctive red square indicator at ~150k tokens (block 28 on 1M models, block 14 on 2M models) marking where LLM code quality and reasoning degrade sharply due to context rot and attention degradation ("Lost in the Middle"). Displays an informative status tooltip on mouse hover.
 
 4. **Category Breakdown Cards**:
    - 4 cards: User Messages, Agent Responses, Tool Calls, System & Cache.
@@ -46,6 +47,7 @@ Colors are defined to provide high contrast on both light and dark themes:
 | **Agent** | `--c-agent` | `#059669` | Model thoughts & output |
 | **Tool** | `--c-tool` | `#d97706` | Tool calls & execution |
 | **System** | `--c-system` | `#7c3aed` | System instructions & cache |
+| **Dumb Zone** | `.cell.dumb-zone` | `#ef4444` | Start of reasoning & code degradation (~150k tokens) |
 | **Free** | `--c-free` | `rgba(148, 163, 184, 0.2)` | Unused headroom |
 
 ## 3. Frontend Polling & Lifecycles
