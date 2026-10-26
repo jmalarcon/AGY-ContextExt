@@ -50,7 +50,17 @@ To keep this guide concise and avoid context bloat, implementation details are m
 
 > **Agent Instruction**: Consult the specific document in `.agents/docs/` only when working on that domain.
 
-## 5. Development Workflow & Testing Rules
+## 5. Operational Instructions (`.agents/instructions/`)
+
+To avoid context bloat, step-by-step procedures for releases, Git operations, and packaging are modularized in [`.agents/instructions/`](/.agents/instructions/):
+
+- [`.agents/instructions/create-release-zip.md`](/.agents/instructions/create-release-zip.md): Packaging the extension into a distribution ZIP (`agy-context-ext-vx.y.z.zip`) in the OS `Downloads` folder.
+- [`.agents/instructions/git-commit-push.md`](/.agents/instructions/git-commit-push.md): Staging, crafting exhaustive commit messages, and pushing clean commits to GitHub.
+- [`.agents/instructions/publish-github-release.md`](/.agents/instructions/publish-github-release.md): Tagging, drafting release notes, and publishing GitHub Releases with the ZIP asset using GitHub CLI (`gh`).
+
+> **Agent Instruction**: Consult the corresponding instruction in `.agents/instructions/` only when explicitly performing that task.
+
+## 6. Development Workflow & Testing Rules
 
 1. **Keep Frontend Inlined**: Maintain all CSS and JS within `src/sidecars/panel/index.html`. Separate asset files are aggressively cached by Electron and fail to update.
 2. **Syncing to Local Antigravity**:
@@ -80,7 +90,7 @@ To keep this guide concise and avoid context bloat, implementation details are m
    - **MAJOR** (`X.0.0`): Breaking changes, incompatible manifest formats, or sidecar communication protocol redesigns.
    Always keep the version string in `src/plugin.json` and `src/sidecars/panel/package.json` perfectly synchronized.
 
-## 6. Documentation Maintenance Rules for AI Agents
+## 7. Documentation Maintenance Rules for AI Agents
 
 To keep context lightweight and accurate across sessions, agents must follow these rules:
 
