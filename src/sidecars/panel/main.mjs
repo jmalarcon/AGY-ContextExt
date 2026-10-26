@@ -72,7 +72,7 @@ function fetchSubscriptionUsage() {
   const agyCmd = resolveAgyCommand();
   const commandLine = `${agyCmd} --output-format json --print "/usage"`;
 
-  exec(commandLine, { env: getAugmentedEnv(), timeout: 25000 }, (error, stdout) => {
+  exec(commandLine, { env: getAugmentedEnv(), timeout: 25000, windowsHide: true }, (error, stdout) => {
     isFetchingSubscription = false;
     if (error) {
       console.warn('Failed to fetch subscription quota via agy:', error.message);

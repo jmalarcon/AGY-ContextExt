@@ -64,6 +64,7 @@ Because network requests to Google's backend take ~1.5 to 2.5 seconds:
 - **TTL Cache**: Quota data is cached for **2 minutes** (`SUBSCRIPTION_CACHE_TTL = 120_000`).
 - **Decoupling**: The 1.5-second polling loop for context tokens remains fast and unblocked.
 - **On-Demand Refresh**: `GET /api/subscription/refresh` triggers an immediate background fetch when the user clicks the refresh button on the UI.
+- **Headless Execution (`windowsHide: true`)**: Child process execution sets `windowsHide: true` to prevent any terminal or console window flashing on Windows when invoking `agy`.
 
 ## 5. Cross-Platform Binary Discovery & Fallbacks
 
