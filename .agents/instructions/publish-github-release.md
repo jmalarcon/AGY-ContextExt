@@ -68,10 +68,15 @@ Ask the user for confirmation about the release notes before continuing.
 
 ### 3. Create Release and Upload Asset
 
-Run `gh release create` to tag, publish the release, and upload the ZIP asset simultaneously:
+Save the release notes to a temporary file (to avoid PowerShell quoting and escaping issues with external CLI arguments) and publish the release with the ZIP asset:
 
 ```powershell
-gh release create "v$version" "$zipPath" --title "v$version" --notes "$notes"
+$notesFile = Join-Path ([System.IO.Path]::GetTempPath()) "release-notes-v$version.md"
+Set-Content -Path $notesFile -Value $notes -Encoding UTF8
+
+gh release create "v$version" "$zipPath" --title "v$version" --notes-file "$notesFile"
+
+Remove-Item -Path $notesFile -Force
 ```
 
 *(Optional: Use `--draft` if creating an unannounced draft, or `--prerelease` if publishing a beta/RC).*
