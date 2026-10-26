@@ -6,7 +6,7 @@ This document describes how `AGY-ContextExt` monitors rate limits and subscripti
 
 The plugin utilizes a **zero-credential footprint**:
 - No API keys, passwords, or OAuth credentials are stored, handled, or required by the plugin.
-- The sidecar backend executes the local CLI command `agy --output-format json --print "/usage"` as a child process.
+- The sidecar backend executes the local CLI binary `agy` directly using `execFile()` with arguments `['--output-format', 'json', '--print', '/usage']` (avoiding shell execution via `cmd.exe`).
 
 ## 2. Silent Auth via Native OS Keyring
 
@@ -64,7 +64,7 @@ Because network requests to Google's backend take ~1.5 to 2.5 seconds:
 - **TTL Cache**: Quota data is cached for **2 minutes** (`SUBSCRIPTION_CACHE_TTL = 120_000`).
 - **Decoupling**: The 1.5-second polling loop for context tokens remains fast and unblocked.
 - **On-Demand Refresh**: `GET /api/subscription/refresh` triggers an immediate background fetch when the user clicks the refresh button on the UI.
-- **Headless Execution (`windowsHide: true`)**: Child process execution sets `windowsHide: true` to prevent any terminal or console window flashing on Windows when invoking `agy`.
+- **Headless Execution (`execFile` + `windowsHide: true`)**: Child process execution calls `execFile()` directly on the binary rather than spawning a shell (`cmd.exe`), combined with `windowsHide: true` (`CREATE_NO_WINDOW`) to prevent any terminal or console window flashing on Windows when invoking `agy`.
 
 ## 5. Cross-Platform Binary Discovery & Fallbacks
 

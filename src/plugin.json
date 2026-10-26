@@ -1,6 +1,6 @@
 {
   "name": "agy-context-ext",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Displays live context window token consumption and visual block breakdown for Antigravity 2.0.",
   "logo": "assets/logo.svg"
 }

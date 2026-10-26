@@ -11,6 +11,7 @@ The dashboard is structured into four primary sections:
    - Status badge: "Live" (pulsating green dot) when interval > 0s, or "Manual" (static red dot) when interval = 0s.
    - Configurable polling interval selector (0 to 60 seconds, where 0 is manual mode).
    - Global refresh button with click-spin animation.
+   - Author & GitHub repo banner (`by José M. Alarcón` + GitHub repository pill button with external link icon).
 
 2. **Overview Hero Card & Progress Bar**:
    - Total tokens consumed vs. capacity (percentage and count).

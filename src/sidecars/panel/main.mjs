@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { Response, SidecarApp } from 'sidecar_sdk';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -36,10 +36,10 @@ function resolveAgyCommand() {
 
   for (const c of candidates) {
     if (c && existsSync(c)) {
-      return `"${c}"`;
+      return c;
     }
   }
-  return 'agy';
+  return isWin ? 'agy.exe' : 'agy';
 }
 
 function getAugmentedEnv() {
@@ -70,9 +70,9 @@ function fetchSubscriptionUsage() {
   isFetchingSubscription = true;
 
   const agyCmd = resolveAgyCommand();
-  const commandLine = `${agyCmd} --output-format json --print "/usage"`;
+  const args = ['--output-format', 'json', '--print', '/usage'];
 
-  exec(commandLine, { env: getAugmentedEnv(), timeout: 25000, windowsHide: true }, (error, stdout) => {
+  execFile(agyCmd, args, { env: getAugmentedEnv(), timeout: 25000, windowsHide: true }, (error, stdout) => {
     isFetchingSubscription = false;
     if (error) {
       console.warn('Failed to fetch subscription quota via agy:', error.message);
